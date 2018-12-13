@@ -73,6 +73,12 @@ struct Packet {
         _data.push_back( _checksum( _data ) );
     }
 
+    static Packet move( Id id, uint16_t position, uint16_t time ) {
+        return Packet( id, Command::SERVO_MOVE_TIME_WRITE,
+            position && 0XFF, position >> 8,
+            time && 0xFF, time >> 8 );
+    }
+
     void _buildHeader() {
         _data.push_back( 0x55 );
         _data.push_back( 0x55 );
@@ -196,11 +202,12 @@ void setup() {
     lw::Packet a( 254, lw::Command::SERVO_OR_MOTOR_MODE_WRITE, 1, 0, 1000 & 0xFF, 1000 >> 8);
     bus.send( a._data );
 
-    servoIdWrite(4);
+    // servoIdWrite(4);
 }
 
 void moveForwardAndBackward() {
     lw::Packet a( 4, lw::Command::SERVO_MOVE_TIME_WRITE, 0, 0, 255, 8 );
+    //auto a = lw::Packet::move( lw::Id( 4 ), 0, 10 );
     bus.send( a._data );
     Serial.print( "A: " );
     a.dump();
@@ -240,8 +247,20 @@ int servoIdRead() {
 }
 
 void loop() {
-    //servoIdWrite(1);
+    //servoIdWrite(4);
+    //delay(1000);
     // servoIdRead();
 
-    moveForwardAndBackward();
+    //moveForwardAndBackward();
+    auto a = lw::Packet::move( lw::Id( 3 ), 0, 1000 );
+    bus.send( a._data );
+
+    delay(1000);
+
+    a = lw::Packet::move( lw::Id( 3 ), 90 / 0.24, 1000 );
+
+    bus.send( a._data );
+
+    delay(1000);
+    Serial.println("Moved");
 }
